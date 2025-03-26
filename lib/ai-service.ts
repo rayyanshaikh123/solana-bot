@@ -1,5 +1,4 @@
-import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
+import { Together } from "together-ai"
 
 export interface AIInsight {
   title: string
@@ -9,12 +8,13 @@ export interface AIInsight {
 
 export async function generateMarketInsights(): Promise<AIInsight[]> {
   try {
-    // Check if we have the OpenAI API key
-    const hasOpenAIKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY
+    // Check if we have the Together AI API key
+    const hasTogetherKey = process.env.TOGETHER_API_KEY || process.env.NEXT_PUBLIC_TOGETHER_API_KEY
 
-    if (hasOpenAIKey) {
-      const { text } = await generateText({
-        model: openai("gpt-4o"),
+    if (hasTogetherKey) {
+      const together = new Together(hasTogetherKey)
+      
+      const response = await together.complete({
         prompt: `Generate three insightful analyses about the current Solana ecosystem and token market. 
         Include: 
         1. A price prediction for SOL based on current trends
@@ -22,10 +22,13 @@ export async function generateMarketInsights(): Promise<AIInsight[]> {
         3. Emerging token opportunities
         
         Format each insight with a title and detailed content paragraph.`,
+        model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+        max_tokens: 1000,
+        temperature: 0.7,
       })
 
       // Parse the response into structured insights
-      const insights = parseInsightsFromText(text)
+      const insights = parseInsightsFromText(response.output.choices[0].text)
 
       return insights.map((insight) => ({
         ...insight,

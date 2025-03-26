@@ -22,7 +22,7 @@ export default function SettingsPage() {
   const [botsEnabled, setBotsEnabled] = useState(false)
 
   // API settings
-  const [openaiKey, setOpenaiKey] = useState("")
+  const [togetherKey, setTogetherKey] = useState("")
   const [solanaRpcUrl, setSolanaRpcUrl] = useState("https://api.mainnet-beta.solana.com")
 
   // Notification settings
@@ -204,12 +204,12 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="openai-key">OpenAI API Key</Label>
+                <Label htmlFor="together-key">Together AI API Key</Label>
                 <Input
-                  id="openai-key"
-                  placeholder="Enter your OpenAI API key"
-                  value={openaiKey}
-                  onChange={(e) => setOpenaiKey(e.target.value)}
+                  id="together-key"
+                  placeholder="Enter your Together AI API key"
+                  value={togetherKey}
+                  onChange={(e) => setTogetherKey(e.target.value)}
                   type="password"
                 />
                 <p className="text-xs text-muted-foreground">Used for AI-powered insights and analysis</p>

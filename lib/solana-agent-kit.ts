@@ -3,80 +3,83 @@
 export interface TokenInfo {
   name: string
   symbol: string
-  decimals: number
-  totalSupply: string
-  mintAuthority?: string
-  freezeAuthority?: string
+  supply: string
+  holders: number
+  marketCap: number
 }
 
-export interface TokenCreationParams {
-  name: string
-  symbol: string
-  decimals: number
-  initialSupply: string
-  isMintable: boolean
-  isBurnable: boolean
-  isPausable: boolean
+export interface MarketStats {
+  solPrice: number
+  marketCap: number
+  volume24h: number
+  tvl: number
 }
 
 export interface SolanaAgentKit {
-  createToken: (params: TokenCreationParams) => Promise<{ success: boolean; tokenAddress?: string; error?: string }>
+  createToken: (
+    name: string,
+    symbol: string,
+    initialSupply: string,
+    decimals: number,
+  ) => Promise<{ success: boolean; tokenAddress?: string; txId?: string; message?: string }>
+
   getTokenInfo: (tokenAddress: string) => Promise<TokenInfo>
-  mintTokens: (tokenAddress: string, amount: string, recipient: string) => Promise<{ success: boolean; error?: string }>
-  burnTokens: (tokenAddress: string, amount: string) => Promise<{ success: boolean; error?: string }>
+
+  getMarketStats: () => Promise<MarketStats>
+
+  mintTokens: (tokenAddress: string, amount: string, recipient: string) => Promise<{ success: boolean; txId?: string }>
+
+  burnTokens: (tokenAddress: string, amount: string) => Promise<{ success: boolean; txId?: string }>
+
   transferTokens: (
     tokenAddress: string,
     amount: string,
     recipient: string,
-  ) => Promise<{ success: boolean; error?: string }>
-  getMarketStats: () => Promise<any>
+  ) => Promise<{ success: boolean; txId?: string }>
 }
 
-// Mock implementation for demonstration purposes
-export const createSolanaAgentKit = (): SolanaAgentKit => {
+// Create a mock Solana Agent Kit for development
+export function createSolanaAgentKit(): SolanaAgentKit {
   return {
-    createToken: async (params: TokenCreationParams) => {
-      // In a real implementation, this would interact with the Solana blockchain
-      console.log("Creating token with params:", params)
+    createToken: async (name: string, symbol: string, initialSupply: string, decimals: number) => {
+      console.log(`Creating token ${name} (${symbol}) with supply ${initialSupply} and ${decimals} decimals`)
+      // Mock successful response
+      return { success: true, tokenAddress: "mock-token-address", txId: "mock-tx-id" }
+    },
+
+    getTokenInfo: async (_tokenAddress: string) => {
+      // Mock implementation - in a real app, this would fetch on-chain data
       return {
-        success: true,
-        tokenAddress: "TokenAddressWouldBeHere",
+        name: "SOL",
+        symbol: "SOL",
+        supply: "511,846,235",
+        holders: 1245789,
+        marketCap: 32560000000,
       }
     },
 
-    getTokenInfo: async (tokenAddress: string) => {
-      // Mock token info
-      return {
-        name: "Example Token",
-        symbol: "EXT",
-        decimals: 9,
-        totalSupply: "1000000000",
-        mintAuthority: "MintAuthorityAddressHere",
-      }
+    mintTokens: async (_tokenAddress: string, amount: string, recipient: string) => {
+      console.log(`Minted ${amount} tokens to ${recipient}`)
+      return { success: true, txId: "mocked-tx-id-" + Date.now() }
     },
 
-    mintTokens: async (tokenAddress: string, amount: string, recipient: string) => {
-      console.log(`Minting ${amount} tokens to ${recipient}`)
-      return { success: true }
+    burnTokens: async (_tokenAddress: string, amount: string) => {
+      console.log(`Burned ${amount} tokens`)
+      return { success: true, txId: "mocked-tx-id-" + Date.now() }
     },
 
-    burnTokens: async (tokenAddress: string, amount: string) => {
-      console.log(`Burning ${amount} tokens`)
-      return { success: true }
-    },
-
-    transferTokens: async (tokenAddress: string, amount: string, recipient: string) => {
-      console.log(`Transferring ${amount} tokens to ${recipient}`)
-      return { success: true }
+    transferTokens: async (_tokenAddress: string, amount: string, recipient: string) => {
+      console.log(`Transferred ${amount} tokens to ${recipient}`)
+      return { success: true, txId: "mocked-tx-id-" + Date.now() }
     },
 
     getMarketStats: async () => {
-      // Mock market stats
+      // Mock data - in a real app, this would fetch from an API
       return {
-        solPrice: 158.42,
-        marketCap: 61200000000,
-        volume24h: 2100000000,
-        tvl: 1800000000,
+        solPrice: 142.87,
+        marketCap: 62580000000,
+        volume24h: 2450000000,
+        tvl: 4250000000,
       }
     },
   }

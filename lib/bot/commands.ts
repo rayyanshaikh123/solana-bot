@@ -29,7 +29,7 @@ export const commands: Record<string, Command> = {
   create: {
     name: "create",
     description: "Initiates a Solana token project",
-    execute: async (args, context) => {
+    execute: async (_args: string[], context: CommandContext) => {
       // This would typically start an interactive flow
       return {
         text: `👋 Hi ${context.username}! Let's create a new Solana token. Please provide the following information:
@@ -47,7 +47,7 @@ Example: \`MyToken MTK 1000000 9\``,
   stats: {
     name: "stats",
     description: "Retrieves real-time Solana market insights",
-    execute: async (args, context) => {
+    execute: async (_args: string[], _context: CommandContext) => {
       try {
         const solanaKit = createSolanaAgentKit()
         const stats = await solanaKit.getMarketStats()
@@ -74,7 +74,7 @@ _Data refreshed at ${new Date().toLocaleTimeString()}_`,
   help: {
     name: "help",
     description: "Provides assistance and usage guidance",
-    execute: async (args, context) => {
+    execute: async (_args: string[], _context: CommandContext) => {
       return {
         text: `🤖 **Solana DeFi Token Assistant Help**
 

@@ -5,7 +5,7 @@ import { commands, handleCommand, type CommandContext } from "./commands"
 export async function setupDiscordBot(token: string, clientId: string) {
   // Create a new Discord client
   const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+    intents: [GatewayIntentBits.Guilds],
   })
 
   // Register slash commands
