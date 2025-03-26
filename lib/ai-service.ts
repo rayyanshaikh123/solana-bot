@@ -1,4 +1,4 @@
-import { Together } from "together-ai"
+import Together from "together-ai"
 
 export interface AIInsight {
   title: string

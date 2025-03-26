@@ -1,29 +1,39 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { LineChart } from "@/components/ui/chart"
 import { Tooltip } from "recharts"
+import { getHistoricalPriceData, PriceDataPoint } from "@/lib/market-data-service"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface TokenOverviewProps {
   className?: string
 }
 
 export function TokenOverview({ className }: TokenOverviewProps) {
-  // Sample data for the chart
-  const data = [
-    { date: "2023-01", value: 1000 },
-    { date: "2023-02", value: 1200 },
-    { date: "2023-03", value: 900 },
-    { date: "2023-04", value: 1500 },
-    { date: "2023-05", value: 2000 },
-    { date: "2023-06", value: 1800 },
-    { date: "2023-07", value: 2200 },
-    { date: "2023-08", value: 2600 },
-    { date: "2023-09", value: 2400 },
-    { date: "2023-10", value: 2800 },
-    { date: "2023-11", value: 3200 },
-    { date: "2023-12", value: 3600 },
-  ]
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<PriceDataPoint[]>([])
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const { monthly } = await getHistoricalPriceData()
+        // Scale for portfolio value (10x SOL price for demonstration)
+        setData(monthly.map(point => ({
+          ...point,
+          value: point.value * 10 * (1 + Math.random() * 0.4)
+        })))
+      } catch (error) {
+        console.error("Failed to fetch portfolio data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   return (
     <Card className={className}>
@@ -32,31 +42,37 @@ export function TokenOverview({ className }: TokenOverviewProps) {
         <CardDescription>Your token portfolio performance over time</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
-          <LineChart
-            data={data}
-            xAxisKey="date"
-            series={[
-              {
-                key: "value",
-                label: "Token Value",
-                color: "hsl(var(--primary))",
-              },
-            ]}
-            tooltip={
-              <Tooltip 
-                formatter={(value) => [`$${Number(value).toLocaleString()}`, "Value"]}
-                labelFormatter={(label) => {
-                  const date = new Date(label);
-                  return `${date.toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  })}`;
-                }}
-              />
-            }
-          />
-        </div>
+        {loading ? (
+          <div className="h-[300px] flex items-center justify-center">
+            <Skeleton className="h-[280px] w-full" />
+          </div>
+        ) : (
+          <div className="h-[300px]">
+            <LineChart
+              data={data}
+              xAxisKey="date"
+              series={[
+                {
+                  key: "value",
+                  label: "Portfolio Value",
+                  color: "hsl(var(--primary))",
+                },
+              ]}
+              tooltip={
+                <Tooltip 
+                  formatter={(value) => [`$${Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, "Value"]}
+                  labelFormatter={(label) => {
+                    const date = new Date(label);
+                    return `${date.toLocaleDateString("en-US", {
+                      month: "short",
+                      year: "numeric",
+                    })}`;
+                  }}
+                />
+              }
+            />
+          </div>
+        )}
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="rounded-lg border p-3">
             <div className="text-sm font-medium text-muted-foreground">Total Value</div>

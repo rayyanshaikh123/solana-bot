@@ -1,56 +1,54 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart } from "@/components/ui/chart"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useState } from "react"
 import { Tooltip } from "recharts"
+import { getTokenPerformanceData, TokenPerformanceData } from "@/lib/market-data-service"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function TokenPerformance() {
   const [timeframe, setTimeframe] = useState("7d")
+  const [loading, setLoading] = useState(true)
+  const [performanceData, setPerformanceData] = useState<{
+    "7d": TokenPerformanceData[],
+    "30d": TokenPerformanceData[],
+    "90d": TokenPerformanceData[]
+  }>({
+    "7d": [],
+    "30d": [],
+    "90d": []
+  })
 
-  // Sample data for the chart
-  const performanceData = {
-    "7d": [
-      { token: "SOL", value: 12.5 },
-      { token: "BONK", value: 25.3 },
-      { token: "JTO", value: 8.7 },
-      { token: "PYTH", value: 15.2 },
-      { token: "RAY", value: -5.8 },
-      { token: "ORCA", value: 3.2 },
-      { token: "MSOL", value: 10.1 },
-      { token: "SAMO", value: 18.9 },
-    ],
-    "30d": [
-      { token: "SOL", value: 45.2 },
-      { token: "BONK", value: 120.5 },
-      { token: "JTO", value: 22.3 },
-      { token: "PYTH", value: 38.7 },
-      { token: "RAY", value: -12.4 },
-      { token: "ORCA", value: 15.8 },
-      { token: "MSOL", value: 42.3 },
-      { token: "SAMO", value: 65.1 },
-    ],
-    "90d": [
-      { token: "SOL", value: 120.8 },
-      { token: "BONK", value: 250.3 },
-      { token: "JTO", value: 45.6 },
-      { token: "PYTH", value: 85.2 },
-      { token: "RAY", value: 12.5 },
-      { token: "ORCA", value: 35.7 },
-      { token: "MSOL", value: 110.2 },
-      { token: "SAMO", value: 180.5 },
-    ],
-  }
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const data = await getTokenPerformanceData()
+        setPerformanceData(data)
+      } catch (error) {
+        console.error("Failed to fetch token performance data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle>Token Performance</CardTitle>
-          <CardDescription>Performance comparison of top Solana tokens</CardDescription>
+          <CardDescription>Price performance by timeframe</CardDescription>
         </div>
-        <Select value={timeframe} onValueChange={setTimeframe}>
+        <Select
+          value={timeframe}
+          onValueChange={setTimeframe}
+          disabled={loading}
+        >
           <SelectTrigger className="w-[100px]">
             <SelectValue placeholder="Timeframe" />
           </SelectTrigger>
@@ -62,25 +60,32 @@ export function TokenPerformance() {
         </Select>
       </CardHeader>
       <CardContent>
-        <div className="h-[350px]">
-          <BarChart
-            data={performanceData[timeframe as keyof typeof performanceData]}
-            xAxisKey="token"
-            series={[
-              {
-                key: "value",
-                label: "% Change",
-                valueFormatter: (value) => `${value.toFixed(2)}%`,
-                color: "hsl(var(--primary))"
-              },
-            ]}
-            tooltip={
-              <Tooltip
-                formatter={(value) => [`${Number(value).toFixed(2)}%`, "Change"]}
-              />
-            }
-          />
-        </div>
+        {loading ? (
+          <div className="w-full h-[300px] flex items-center justify-center">
+            <Skeleton className="h-[280px] w-full" />
+          </div>
+        ) : (
+          <div className="h-[300px]">
+            <BarChart
+              data={performanceData[timeframe as keyof typeof performanceData]}
+              xAxisKey="token"
+              series={[
+                {
+                  key: "value",
+                  label: "% Change",
+                  valueFormatter: (value) => `${value.toFixed(1)}%`,
+                  color: (data: any) => (data && data.value >= 0 ? "hsl(var(--primary))" : "hsl(var(--destructive))"),
+                },
+              ]}
+              tooltip={
+                <Tooltip
+                  formatter={(value) => [`${Number(value).toFixed(1)}%`, "Change"]}
+                  cursor={{ fill: "hsl(var(--muted))" }}
+                />
+              }
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   )
